@@ -15,8 +15,6 @@ class JingRongJiebankproductspiderPipeline(object):
         self.r = redis.StrictRedis(host='10.1.1.33', port=6379, db=13)
 
     def process_item(self, item, spider):
-        print('----------------------------------')
-
         sql = """insert into tbl_bank_financial_product_jrj(
                             manage_period,
                             manage_period_unit,
@@ -67,6 +65,29 @@ class JingRongJiebankproductspiderPipeline(object):
                 print "Error %d: %s" % (e.args[0], e.args[1])
 
 
-        print('----------------------------------')
+        return item
+
+
+
+class updateDatePipeline(object):
+    def __init__(self):
+        self.conn = MySQLdb.connect(host="10.1.1.32", user="dev", passwd="dev", db="hj_wealth", charset="utf8")
+        self.cursor = self.conn.cursor()
+
+    def process_item(self, item,spider):
+        sql = """update tbl_bank_financial_product_jrj set sale_start_date = %s,sale_stop_date = %s , product_name ='%s'
+                    where data_source_tag = '%s' ;""" % (item['beginDate'],
+                            item['endDate'],item['productName'],item['productID'])
+
+
+        print('------------------------')
+        print(sql)
+
+        try:
+            n = self.cursor.execute(sql)
+            self.conn.commit()
+        except MySQLdb.Error, e:
+            print "Error %d: %s" % (e.args[0], e.args[1])
+
 
         return item

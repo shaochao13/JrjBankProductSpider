@@ -6,6 +6,7 @@ from scrapy.http import Request
 from jingrongjiebankproductSpider.items import JingRongJiebankproductItem
 import MySQLdb
 import redis
+import time
 
 
 class JingRongJieBankProductSpider(BaseSpider):
@@ -22,16 +23,58 @@ class JingRongJieBankProductSpider(BaseSpider):
     def parse(self, response):
         jsonresponse = json.loads(response.body_as_unicode())
         pageIndex = jsonresponse["page"]
+
+        print('----------------------------------')
+        print(pageIndex)
+        print('----------------------------------')
         pageIndex = int(pageIndex) + 1
-        productsum = jsonresponse["pagesum"]
         products = jsonresponse["product"]
-        items = []
         if len(products) > 0:
             for info in products:
-                yield self.parse_two(info)
+                pid = info['productID']
+                if self.r.sismember("jrjproductIDs", pid):
+                    yield self.prase_three(info)
 
+            time.sleep(3)
             url = u'http://bank.jrj.com.cn/action/bankproduct.jspa?page=%s&order=SELL_END_DATE desc&bankid=0&cur=0&yield=0&sell=0&productname=&period=0&yieldtype=&holding=&atone=&beginDate=&endDate=&wf=1' % pageIndex
             yield Request(url=url, callback=self.parse)
+
+
+    def prase_three(self, info):
+
+        item = JingRongJiebankproductItem()
+
+        item['productID'] = info['productID']
+        item['productName'] = info['productName']
+
+        #发行起始日期
+        beginDate = info['beginDate']
+        if len(beginDate) > 0:
+            tmp = (beginDate).split('-')
+
+            if len(tmp) == 3:
+                item["beginDate"] = "'%s'" % '-'.join(tmp)
+            else:
+                item["beginDate"] = "NULL"
+        else:
+            item["beginDate"] = "NULL"
+
+        # print('beginDate : %s' % item["beginDate"])
+
+        #发行终止日期
+        endDate = info['endDate']
+        if len(endDate) > 0:
+            tmp = endDate.split('-')
+            if len(tmp) == 3:
+                item["endDate"] = "'%s'" % '-'.join(tmp)
+            else:
+                item["endDate"] = "NULL"
+        else:
+            item["endDate"] = "NULL"
+
+        print('endDate : %s' % item["endDate"])
+
+        return item
 
 
 
@@ -85,7 +128,7 @@ class JingRongJieBankProductSpider(BaseSpider):
         if len(beginDate) > 0:
             tmp = (beginDate[0]).split('-')
             if len(tmp) == 3:
-                item["beginDate"] = "'%s'" % beginDate
+                item["beginDate"] = "'%s'" % '-'.join(tmp)
             else:
                 item["beginDate"] = "NULL"
         else:
@@ -96,7 +139,7 @@ class JingRongJieBankProductSpider(BaseSpider):
         if len(endDate) > 0:
             tmp = (endDate[0]).split('-')
             if len(tmp) == 3:
-                item["endDate"] = "'%s'" % endDate
+                item["endDate"] = "'%s'" % '-'.join(endDate)
             else:
                 item["endDate"] = "NULL"
         else:

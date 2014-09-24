@@ -12,7 +12,7 @@ BOT_NAME = 'jingrongjiebankproductSpider'
 
 SPIDER_MODULES = ['jingrongjiebankproductSpider.spiders']
 NEWSPIDER_MODULE = 'jingrongjiebankproductSpider.spiders'
-ITEM_PIPELINES = ['jingrongjiebankproductSpider.pipelines.JingRongJiebankproductspiderPipeline']
+ITEM_PIPELINES = ['jingrongjiebankproductSpider.pipelines.updateDatePipeline']
 LOG_LEVEL = 'INFO'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

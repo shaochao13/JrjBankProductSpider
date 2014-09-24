@@ -10,7 +10,7 @@ import scrapy
 
 class JingRongJiebankproductItem(scrapy.Item):
     productID = scrapy.Field()
-    # productName = scrapy.Field()
+    productName = scrapy.Field()
     #银行提前终止条件
     # stopCond = scrapy.Field()
     #委托管理期限
